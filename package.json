@@ -1,0 +1,13 @@
+{
+  "name": "team-task-board",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -k -n server,client -c blue,green \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "test": "npm run test:server && npm run test:client",
+    "test:server": "npm --prefix server test -- --run",
+    "test:client": "npm --prefix client test -- --run"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
