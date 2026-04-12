@@ -5,6 +5,7 @@ import {
   deleteTask,
   findTaskById,
   listTasks,
+  undoTaskStatus,
   updateTaskStatus
 } from "./taskStore.js";
 import {
@@ -53,6 +54,20 @@ taskRouter.patch("/:id", (request, response) => {
   const updatedTask = updateTaskStatus(existingTask.id, validation.status!);
 
   return response.status(200).json(updatedTask);
+});
+
+taskRouter.post("/:id/undo", (request, response) => {
+  const result = undoTaskStatus(request.params.id);
+
+  if (result === "not-found") {
+    return response.status(404).json({ error: "Task not found" });
+  }
+
+  if (result === "no-history") {
+    return response.status(400).json({ error: "No previous status to undo" });
+  }
+
+  return response.status(200).json(result);
 });
 
 taskRouter.delete("/:id", (request, response) => {

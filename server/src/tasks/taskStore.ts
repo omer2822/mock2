@@ -3,9 +3,11 @@ import { randomUUID } from "node:crypto";
 import type { CreateTaskInput, Task, TaskStatus } from "./task.types.js";
 
 let tasks: Task[] = [];
+const previousStatusMap = new Map<string, TaskStatus>();
 
 export const resetTaskStore = (): void => {
   tasks = [];
+  previousStatusMap.clear();
 };
 
 export const createTask = (input: CreateTaskInput): Task => {
@@ -38,8 +40,31 @@ export const updateTaskStatus = (id: string, status: TaskStatus): Task | undefin
     return undefined;
   }
 
+  previousStatusMap.set(id, task.status);
   task.status = status;
   task.updatedAt = new Date().toISOString();
+
+  return task;
+};
+
+export const undoTaskStatus = (
+  id: string
+): Task | "not-found" | "no-history" => {
+  const task = findTaskById(id);
+
+  if (!task) {
+    return "not-found";
+  }
+
+  const previousStatus = previousStatusMap.get(id);
+
+  if (!previousStatus) {
+    return "no-history";
+  }
+
+  task.status = previousStatus;
+  task.updatedAt = new Date().toISOString();
+  previousStatusMap.delete(id);
 
   return task;
 };
@@ -47,6 +72,7 @@ export const updateTaskStatus = (id: string, status: TaskStatus): Task | undefin
 export const deleteTask = (id: string): boolean => {
   const initialLength = tasks.length;
   tasks = tasks.filter((task) => task.id !== id);
+  previousStatusMap.delete(id);
 
   return tasks.length < initialLength;
 };

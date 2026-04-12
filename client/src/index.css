@@ -80,18 +80,25 @@ textarea {
 
 .task-form,
 .task-column,
-.error-banner {
+.error-banner,
+.undo-banner,
+.search-bar {
   backdrop-filter: blur(12px);
-  background: rgba(255, 255, 255, 0.76);
-  border: 1px solid rgba(255, 255, 255, 0.7);
   box-shadow: 0 24px 60px rgba(20, 33, 61, 0.08);
 }
 
 .task-form {
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 28px;
   padding: 1.5rem;
   display: grid;
   gap: 1.25rem;
+}
+
+.search-bar {
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.76);
 }
 
 .task-form__header {
@@ -148,6 +155,18 @@ textarea {
   background: rgba(255, 241, 242, 0.92);
 }
 
+.undo-banner {
+  border-radius: 20px;
+  padding: 1rem 1.2rem;
+  border: 1px solid rgba(15, 118, 110, 0.12);
+  background: rgba(236, 253, 245, 0.92);
+  color: #115e59;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
 .task-board {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -156,6 +175,8 @@ textarea {
 }
 
 .task-column {
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 24px;
   padding: 1rem;
   min-height: 18rem;
@@ -247,7 +268,7 @@ textarea {
 .task-card__meta {
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.7rem;
 }
 
@@ -271,6 +292,10 @@ textarea {
 
 @media (max-width: 900px) {
   .task-board {
+    grid-template-columns: 1fr;
+  }
+
+  .task-card__meta {
     grid-template-columns: 1fr;
   }
 

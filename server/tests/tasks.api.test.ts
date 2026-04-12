@@ -192,6 +192,39 @@ describe("tasks API", () => {
     expect(response.body).toEqual({ error: "Task not found" });
   });
 
+  it("undoes the last status change", async () => {
+    const task = await createTask();
+
+    await request(app)
+      .patch(`/api/tasks/${task.id}`)
+      .send({ status: "in-progress" })
+      .expect(200);
+
+    const response = await request(app).post(`/api/tasks/${task.id}/undo`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      id: task.id,
+      status: "todo"
+    });
+  });
+
+  it("returns 400 when undo has no history", async () => {
+    const task = await createTask();
+
+    const response = await request(app).post(`/api/tasks/${task.id}/undo`);
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "No previous status to undo" });
+  });
+
+  it("returns 404 when undoing a missing task", async () => {
+    const response = await request(app).post("/api/tasks/missing-task/undo");
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({ error: "Task not found" });
+  });
+
   it("deletes an existing task", async () => {
     const task = await createTask();
 

@@ -61,6 +61,14 @@ export const updateTaskStatus = async (
   return parseJson<Task>(response);
 };
 
+export const undoTaskStatus = async (taskId: string): Promise<Task> => {
+  const response = await fetch(`/api/tasks/${taskId}/undo`, {
+    method: "POST"
+  });
+
+  return parseJson<Task>(response);
+};
+
 export const deleteTask = async (taskId: string): Promise<void> => {
   const response = await fetch(`/api/tasks/${taskId}`, {
     method: "DELETE"

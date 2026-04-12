@@ -35,6 +35,10 @@ export function TaskCard({
             <dd>{task.assignee}</dd>
           </div>
           <div>
+            <dt>Created</dt>
+            <dd>{formatTimestamp(task.createdAt)}</dd>
+          </div>
+          <div>
             <dt>Updated</dt>
             <dd>{formatTimestamp(task.updatedAt)}</dd>
           </div>

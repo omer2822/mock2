@@ -188,4 +188,119 @@ describe("App", () => {
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
   });
+
+  it("shows created timestamps on task cards", async () => {
+    mockFetch.mockResolvedValueOnce(mockJsonResponse([createTask()]));
+
+    render(<App />);
+
+    expect(await screen.findByText("Created")).toBeInTheDocument();
+  });
+
+  it("filters tasks by title in real time", async () => {
+    mockFetch.mockResolvedValueOnce(
+      mockJsonResponse([
+        createTask(),
+        createTask({ id: "task-2", title: "Prepare demo agenda", assignee: "Mia" })
+      ])
+    );
+
+    render(<App />);
+
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText("Search tasks"), "demo");
+
+    expect(screen.getByText("Prepare demo agenda")).toBeInTheDocument();
+    expect(screen.queryByText("Draft release notes")).not.toBeInTheDocument();
+  });
+
+  it("filters tasks by assignee in real time", async () => {
+    mockFetch.mockResolvedValueOnce(
+      mockJsonResponse([
+        createTask(),
+        createTask({ id: "task-2", title: "Prepare demo agenda", assignee: "Mia" })
+      ])
+    );
+
+    render(<App />);
+
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText("Search tasks"), "mia");
+
+    expect(screen.getByText("Prepare demo agenda")).toBeInTheDocument();
+    expect(screen.queryByText("Draft release notes")).not.toBeInTheDocument();
+  });
+
+  it("shows an undo button after moving a task forward", async () => {
+    const todoTask = createTask();
+    const updatedTask = {
+      ...todoTask,
+      status: "in-progress" as const,
+      updatedAt: "2026-04-12T10:05:00.000Z"
+    };
+
+    mockFetch
+      .mockResolvedValueOnce(mockJsonResponse([todoTask]))
+      .mockResolvedValueOnce(mockJsonResponse(updatedTask))
+      .mockResolvedValueOnce(mockJsonResponse([updatedTask]));
+
+    render(<App />);
+
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Move Forward" }));
+
+    expect(await screen.findByRole("button", { name: "Undo" })).toBeInTheDocument();
+  });
+
+  it("undoes the last move and restores the task to the previous column", async () => {
+    const todoTask = createTask();
+    const updatedTask = {
+      ...todoTask,
+      status: "in-progress" as const,
+      updatedAt: "2026-04-12T10:05:00.000Z"
+    };
+
+    mockFetch
+      .mockResolvedValueOnce(mockJsonResponse([todoTask]))
+      .mockResolvedValueOnce(mockJsonResponse(updatedTask))
+      .mockResolvedValueOnce(mockJsonResponse([updatedTask]))
+      .mockResolvedValueOnce(mockJsonResponse(todoTask))
+      .mockResolvedValueOnce(mockJsonResponse([todoTask]));
+
+    render(<App />);
+
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Move Forward" }));
+    await user.click(await screen.findByRole("button", { name: "Undo" }));
+
+    await waitFor(() => {
+      const todoColumn = screen.getByRole("region", { name: "To Do" });
+      expect(within(todoColumn).getByText("Draft release notes")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Undo" })).not.toBeInTheDocument();
+    });
+  });
+
+  it("clears the undo banner after a delete", async () => {
+    const task = createTask();
+    const updatedTask = { ...task, status: "in-progress" as const };
+
+    mockFetch
+      .mockResolvedValueOnce(mockJsonResponse([task]))
+      .mockResolvedValueOnce(mockJsonResponse(updatedTask))
+      .mockResolvedValueOnce(mockJsonResponse([updatedTask]))
+      .mockResolvedValueOnce(mockJsonResponse({}, 204))
+      .mockResolvedValueOnce(mockJsonResponse([]));
+
+    render(<App />);
+
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Move Forward" }));
+    expect(await screen.findByRole("status")).toBeInTheDocument();
+
+    await user.click(await screen.findByRole("button", { name: "Delete" }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    });
+  });
 });
